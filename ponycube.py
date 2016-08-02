@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Rotate a cube with a quaternion
 # Demo program
 # Pat Hickey, 27 Dec 10
@@ -174,9 +175,15 @@ def eular2quat(roll,pitch,yaw):
     q4=math.cos(roll/2.)*math.cos(pitch/2.)*math.sin(yaw/2.)-math.sin(roll/2.)*math.sin(pitch/2.)*math.cos(yaw/2.)
     return Quaternion(q1,q2,q3,q4).normalized()
 
+
+
 if __name__ == "__main__":
     pygame.init()
+    pid=[0,0,0.1]
+    font=pygame.font.SysFont("宋体", 30)
     t=serial.Serial('com4',115200)
+    output = struct.pack('<3f', *pid)
+    t.write(output)
     t.flushInput()
     screen =Screen(480,400,scale=1.5)
     cube = Cube(40,30,60)
@@ -184,9 +191,12 @@ if __name__ == "__main__":
     roll=0
     pitch=0
     yaw=0
+    pos=0
     #incr = Quaternion(0.96,0.01,0.01,0).normalized()
     #incr = Quaternion(0,0.5,0.5,0).normalized()
     while 1:
+
+        word = font.render(str(pid),True, (255, 0, 0))
         a=t.read(6)
         l=[]
         for i in range(6):
@@ -211,9 +221,24 @@ if __name__ == "__main__":
         if event.type == pygame.QUIT \
             or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             break
+        if event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_UP:
+                pid[pos]=pid[pos]+0.1
+                pid[pos]=round(pid[pos], 2)
+            if event.key==pygame.K_LEFT:
+                if pos!=0:
+                    pos=pos-1
+            if event.key == pygame.K_RIGHT:
+                if pos!=2:
+                    pos=pos+1
+            if event.key == pygame.K_DOWN:
+                pid[pos]=pid[pos]-0.1
+                pid[pos]=round(pid[pos], 2)
+        screen.i.blit(word, (000, 350))
         pygame.display.flip()
         pygame.time.delay(50)
         #time.sleep(1/50.0)
         cube.erase(screen)
+        pygame.draw.rect(screen.i, (0, 0, 0), pygame.Rect((000, 350), (480, 40)))
         t.flushInput()
 
